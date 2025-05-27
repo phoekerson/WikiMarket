@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Role {
+  id        Int      @id @default(autoincrement())
+  roleName  String   @map("role_name") @db.VarChar(45)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  users User[]
+
+  @@map("roles")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  firstname String   @db.VarChar(45)
+  lastname  String   @db.VarChar(45)
+  email     String   @unique @db.VarChar(45)
+  password  String   @db.VarChar(45)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  rolesId   Int      @map("roles_id")
+
+  // Relations
+  role     Role      @relation(fields: [rolesId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  products Product[]
+  sales    Sale[]
+
+  @@map("users")
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  catName   String   @map("cat_name") @db.VarChar(45)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id           Int      @id @default(autoincrement())
+  proName      String   @map("pro_name") @db.VarChar(45)
+  proPrice     Int      @map("pro_price")
+  proDesc      String   @map("pro_desc") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+  categoriesId Int      @map("categories_id")
+  usersId      Int      @map("users_id")
+
+  // Relations
+  category Category      @relation(fields: [categoriesId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user     User          @relation(fields: [usersId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  bills    Bill[]
+  photos   ProductPhoto[]
+
+  @@map("products")
+}
+
+model ProductPhoto {
+  id        Int      @id @default(autoincrement())
+  filename  String   @db.VarChar(255)
+  url       String   @db.VarChar(500)
+  altText   String?  @map("alt_text") @db.VarChar(255)
+  isPrimary Boolean  @default(false) @map("is_primary")
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+  productId Int      @map("product_id")
+
+  // Relations
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("product_photos")
+}
+
+model Sale {
+  id        Int      @id @default(autoincrement())
+  saleCode  String   @unique @map("sale_code") @db.VarChar(45)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+  usersId   Int      @map("users_id")
+
+  // Relations
+  user     User      @relation(fields: [usersId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  payments Payment[]
+
+  @@map("sales")
+}
+
+model Bill {
+  id         Int      @id @default(autoincrement())
+  qty        Int
+  billCode   String   @unique @map("bill_code") @db.VarChar(45)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+  productsId Int      @map("products_id")
+  prixVente  Int      @map("prix_vente")
+  total      Int
+
+  // Relations
+  product Product @relation(fields: [productsId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("bills")
+}
+
+model PayMethod {
+  id        Int      @id @default(autoincrement())
+  payName   String   @unique @map("pay_name") @db.VarChar(45)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  payments Payment[]
+
+  @@map("paymethods")
+}
+
+model Payment {
+  id           Int      @id @default(autoincrement())
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime @updatedAt @map("updated_up") @db.Timestamp(0)
+  paymethodsId Int      @map("paymethods_id")
+  salesId      Int      @map("sales_id")
+
+  // Relations
+  paymethod PayMethod @relation(fields: [paymethodsId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sale      Sale      @relation(fields: [salesId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("payments")
+}
