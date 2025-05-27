@@ -56,6 +56,7 @@ model Category {
 model Product {
   id           Int      @id @default(autoincrement())
   proName      String   @map("pro_name") @db.VarChar(45)
+  slug         String   @unique @db.VarChar(255)
   proPrice     Int      @map("pro_price")
   proDesc      String   @map("pro_desc") @db.VarChar(255)
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
